@@ -1,0 +1,60 @@
+# depslib dependency file v1.0
+1541515529 source:d:\minh\project\caro+\main.cpp
+	<conio.h>
+	"globalVars.h"
+	"basicdraw.h"
+	"MenuScreen.h"
+	<cstdio>
+
+1541173847 source:d:\minh\project\caro+\basicdraw.cpp
+	"basicdraw.h"
+	<windows.h>
+	<cstdio>
+
+1540993412 d:\minh\project\caro+\basicdraw.h
+
+1541173502 source:d:\minh\project\caro+\screenutils.cpp
+	"screenUtils.h"
+	"windows.h"
+	"globalVars.h"
+	<cstdio>
+
+1541215191 d:\minh\project\caro+\screenutils.h
+
+1541514685 d:\minh\project\caro+\globalvars.h
+
+1541172619 source:d:\minh\project\caro+\splashscreen.cpp
+	"splashScreen.h"
+	"globalVars.h"
+	"csDes_sup.h"
+	"screenUtils.h"
+	"basicdraw.h"
+	<windows.h>
+
+1541164606 d:\minh\project\caro+\splashscreen.h
+
+1541514690 source:d:\minh\project\caro+\globalvars.cpp
+	"globalVars.h"
+
+1541174023 source:d:\minh\project\caro+\csdes_sup.cpp
+	"csDes_sup.h"
+	<cstdio>
+	"basicdraw.h"
+	"screenUtils.h"
+	<windows.h>
+
+1541174042 d:\minh\project\caro+\csdes_sup.h
+	"globalVars.h"
+
+1541220146 d:\minh\project\caro+\menuscreen.h
+
+1541515487 source:d:\minh\project\caro+\menuscreen.cpp
+	"MenuScreen.h"
+	"globalVars.h"
+	"csDes_sup.h"
+	"screenUtils.h"
+	"basicdraw.h"
+	<windows.h>
+	<cstdio>
+	<winuser.h>
+
