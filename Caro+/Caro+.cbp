@@ -38,8 +38,12 @@
 		<Unit filename="basicdraw.h" />
 		<Unit filename="csDes_sup.cpp" />
 		<Unit filename="csDes_sup.h" />
+		<Unit filename="dataStruct.cpp" />
+		<Unit filename="dataStruct.h" />
 		<Unit filename="globalVars.cpp" />
 		<Unit filename="globalVars.h" />
+		<Unit filename="logic.cpp" />
+		<Unit filename="logic.h" />
 		<Unit filename="main.cpp" />
 		<Unit filename="screenUtils.cpp" />
 		<Unit filename="screenUtils.h" />

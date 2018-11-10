@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1541515529 source:d:\minh\project\caro+\main.cpp
+1541866322 source:d:\minh\project\caro+\main.cpp
 	<conio.h>
 	"globalVars.h"
 	"basicdraw.h"
@@ -13,7 +13,7 @@
 
 1540993412 d:\minh\project\caro+\basicdraw.h
 
-1541173502 source:d:\minh\project\caro+\screenutils.cpp
+1541584594 source:d:\minh\project\caro+\screenutils.cpp
 	"screenUtils.h"
 	"windows.h"
 	"globalVars.h"
@@ -21,7 +21,8 @@
 
 1541215191 d:\minh\project\caro+\screenutils.h
 
-1541514685 d:\minh\project\caro+\globalvars.h
+1541864541 d:\minh\project\caro+\globalvars.h
+	"dataStruct.h"
 
 1541172619 source:d:\minh\project\caro+\splashscreen.cpp
 	"splashScreen.h"
@@ -33,8 +34,9 @@
 
 1541164606 d:\minh\project\caro+\splashscreen.h
 
-1541514690 source:d:\minh\project\caro+\globalvars.cpp
+1541864542 source:d:\minh\project\caro+\globalvars.cpp
 	"globalVars.h"
+	"basicdraw.h"
 
 1541174023 source:d:\minh\project\caro+\csdes_sup.cpp
 	"csDes_sup.h"
@@ -46,9 +48,9 @@
 1541174042 d:\minh\project\caro+\csdes_sup.h
 	"globalVars.h"
 
-1541220146 d:\minh\project\caro+\menuscreen.h
+1541866474 d:\minh\project\caro+\menuscreen.h
 
-1541515487 source:d:\minh\project\caro+\menuscreen.cpp
+1541866682 source:d:\minh\project\caro+\menuscreen.cpp
 	"MenuScreen.h"
 	"globalVars.h"
 	"csDes_sup.h"
@@ -57,4 +59,22 @@
 	<windows.h>
 	<cstdio>
 	<winuser.h>
+	<cctype>
+	"logic.h"
+	<iostream>
+	<fstream>
+	<algorithm>
+
+1541647378 source:d:\minh\project\caro+\datastruct.cpp
+	"dataStruct.h"
+
+1541836950 d:\minh\project\caro+\datastruct.h
+	<vector>
+
+1541833539 source:d:\minh\project\caro+\logic.cpp
+	"logic.h"
+	"globalVars.h"
+
+1541691252 d:\minh\project\caro+\logic.h
+	"dataStruct.h"
 
