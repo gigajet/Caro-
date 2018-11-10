@@ -4,7 +4,7 @@
 #include <cstdio>
 
 void AdjustScreenSize (short x, short y) {
-    HANDLE hin = GetStdHandle(STD_INPUT_HANDLE);
+    //HANDLE hin = GetStdHandle(STD_INPUT_HANDLE);
     char cmd[128];
     sprintf(cmd,"mode %d,%d",x,y);
     system(cmd);

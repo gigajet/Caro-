@@ -5,6 +5,7 @@ Trước khi vào menu, tải hết 4 slot. Còn nếu save vào slot nào thì 
 Chế độ chơi: PvP, PvC Easy, PvC Normal hay PvC Hard
 Số nước đi từ đầu trận (tính luôn một lượt đặt đá là một 「nước đi」 dù không chính thức)
 Kích thước của bảng (ngang x dọc)
+Số đá còn lại của 2 người chơi (là 0 và 0 nếu chế độ chơi không có PLACE_STONE)
 Luật chơi của game (time? stone? isoleted? caro/gomoku?)
 {Các nước đi}
 
@@ -13,3 +14,12 @@ Nước đi này có mất lượt hay không? (đánh hay là đặt đá)
 Số hiệu người thực hiện nước đi.
 Nước đi này là đánh dấu hay đặt đá?
 Vị trí nước đi: tọa độ logic x, tọa độ logic y của bảng (không phải tọa độ đồ họa).
+
+* Chắc là phải làm màn hình chơi trước.
+
+
+[stat.dat]
+Lưu 6 số nguyên, lần lượt:
+int Number_of_PvP_P1_Wins, Number_of_PvP_P2_Wins, Number_of_PvP_Draws;
+int Number_of_PvC_Wins, Number_of_PvC_Loses, Number_of_PvC_Draws;
+Dạng text, viết cách nhau bởi dấu cách
