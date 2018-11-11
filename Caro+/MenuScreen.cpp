@@ -11,6 +11,7 @@
 #include <iostream>
 #include <fstream>
 #include <algorithm>
+#include <cstring>
 
 using namespace std;
 
@@ -41,6 +42,7 @@ void MainMenu_UpdateCursor (int oldCursor, int newCursor) {
 }
 
 int MainMenuScreen (int optionCursor) {
+    AdjustScreenSize(80,24);
     SetColor(Color::Black, Color::White);
     ClearScreen(); GotoXY(0,0);
     printf("----------------------MAIN MENU-----------------------\n");
@@ -156,6 +158,7 @@ void Statistic_Draw_Chart (int x, int y, int numberOfComponent, int component[],
 }
 
 void StatisticScreen () {
+    AdjustScreenSize(80,35);
     SetColor(Color::Black, Color::White); ClearScreen();
     GotoXY(2,1); printf("Statistic (Press Enter to return to main menu)");
 
@@ -172,8 +175,6 @@ void StatisticScreen () {
     fflush(stdin); fgetc(stdin);
 }
 
-void OptionScreen () {
-}
 
 ///Vẽ bảng và số chỉ dòng, cột.
 ///(x,y) là số chỉ góc trái trên của BẢNG.
@@ -313,6 +314,10 @@ void Play_DrawInstruction (int x, int y) {
         curY++; GotoXY(curX, curY); //next line
     }
 
+    if (Enable_Undo) {
+        PutString("U:                 Undo");
+        curY++; GotoXY(curX, curY);
+    }
     PutString("D:     Save / Load game");
     curY++; GotoXY(curX, curY); //next line
     PutString("M:    Exit to Main Menu");
@@ -385,7 +390,6 @@ void Play_UpdateTurnIndicator (int x, int y, int OldTurnIndicator, int NewTurnIn
         }
     }
 }
-
 ///Chuyển tọa độ 2 số về tọa độ đọc được trên bảng
 void Play_ConvertToReadableCoord (int w, int h, char out[]) {
     char tw = w+'a'; int th=h+1;
@@ -394,6 +398,7 @@ void Play_ConvertToReadableCoord (int w, int h, char out[]) {
 ///Vẽ chỉ nước đi gần đây.
 void Play_DrawLastMove(int x, int y) {
     int curX=x, curY=y; SetColor(Color::Black, Color::White);
+    PutFilledRectangle(curX, curY, curX+MAX_NAME_LENGTH+16, curY+Num_Last_Move+2,' ');
     GotoXY(curX, curY); PutString("LAST MOVE(S)");
     curY++; GotoXY(curX, curY); for (int i=1; i<=16; ++i) PutChar(238);
     int printed = 0; char crd[7];
@@ -401,7 +406,7 @@ void Play_DrawLastMove(int x, int y) {
         curY++; GotoXY(curX, curY);
         if (Move_List[i].Maker == 1) {
             SetColor(Color::Black, Board_Move_Color_1);
-            printf("%-3d. ",i+1);
+            printf("%-3d ",i+1);
             printf("%-*s",MAX_NAME_LENGTH,Player_1_Name);
             PutString("  ");
             Play_ConvertToReadableCoord(Move_List[i].x, Move_List[i].y, crd);
@@ -413,8 +418,8 @@ void Play_DrawLastMove(int x, int y) {
         }
         else if (Move_List[i].Maker == 2) {
             SetColor(Color::Black, Board_Move_Color_2);
-            printf("%-3d. ",i+1);
-            printf("%-*s",MAX_NAME_LENGTH,Player_1_Name);
+            printf("%-3d ",i+1);
+            printf("%-*s",MAX_NAME_LENGTH,Player_2_Name);
             PutString("  ");
             Play_ConvertToReadableCoord(Move_List[i].x, Move_List[i].y, crd);
             PutString(crd);
@@ -462,7 +467,6 @@ void Play_DrawIllegalMoveIndicator (int x, int y) {
     GotoXY(x,y);
     PutString("             ");
 }
-
 void Play_ClearLogicalBoard () {
     for (int h=0; h<Board_Logical_Size; ++h)
     for (int w=0; w<Board_Logical_Size; ++w)
@@ -470,19 +474,19 @@ void Play_ClearLogicalBoard () {
 }
 void Play_WinningAnimation (int winner) {
     using namespace std;
-    fflush(stdin);
+    AdjustScreenSize(110,35);
     SetColor(Color::Black, Color::White); ClearScreen();
     short bg[5000], fg[5000]; char ascii[5000]; int width, height;
 
     if (winner == 1) {
         ReadCsDesImage("p1win.dat",width,height,bg,fg,ascii);
-        PutCsDesImage(0,0,width,height,bg,fg,ascii);
+        PutCsDesImage(0,0,width,height-1,bg,fg,ascii);
         GotoXY(24,30); SetColor(Color::Black, Color::LightYellow);
         cout<<"Congratulation! Press Enter to return to main menu..."<<endl;
     }
     else {
         ReadCsDesImage("p2win.dat",width,height,bg,fg,ascii);
-        PutCsDesImage(0,0,width,height,bg,fg,ascii);
+        PutCsDesImage(0,0,width,height-1,bg,fg,ascii);
         GotoXY(24,30); SetColor(Color::Black, Color::LightGreen);
         cout<<"Congratulation! Press Enter to return to main menu..."<<endl;
     }
@@ -490,11 +494,12 @@ void Play_WinningAnimation (int winner) {
 }
 void Play_DrawAnimation () {
     using namespace std;
+    AdjustScreenSize(110,35);
     SetColor(Color::Black, Color::White); ClearScreen();
     short bg[5000], fg[5000]; char ascii[5000]; int width, height;
 
     ReadCsDesImage("drawanim.dat",width,height,bg,fg,ascii);
-    PutCsDesImage(0,0,width,height,bg,fg,ascii);
+    PutCsDesImage(0,0,width,height-1,bg,fg,ascii);
     GotoXY(24,30); SetColor(Color::Black, Color::LightCyan);
     cout<<"Game ended in a draw. Press Enter to return to main menu..."<<endl;
     fflush(stdin); fgetc(stdin);
@@ -507,28 +512,65 @@ void Play_InitializeNewGame () {
         Player_1_Stone = Player_2_Stone = Num_Initial_Stone;
     }
 }
-
-void PvPScreen (bool IsANewGame) {
-    {
-        Current_Game_Mode |= PLACE_STONE_MODE;
-    }
-    {
-        Current_Game_Mode |= CARO_MODE;
-        Board_Logical_Size = DEFAULT_BOARD_LOGICAL_SIZE;
-        Board_Cell_Graphical_Size = DEFAULT_BOARD_CELL_GRAPHICAL_SIZE;
-    }
-    if (IsANewGame) {
-        Play_InitializeNewGame();
-    }
+void Play_ReloadGraphics (int boardx, int boardy) {
+    AdjustScreenSize(110, (Board_Logical_Size==20)?45:36);
     SetColor(Color::Black, Color::White); ClearScreen();
     Board_Cell_Color_1 = Color::Blue;
     Board_Cell_Color_2 = Color::Black;
 
-    int boardx=2, boardy=2;
+
+    ///Hide the cursor
+    CONSOLE_CURSOR_INFO csnfo = {100, FALSE};
+    SetConsoleCursorInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csnfo);
+
     Play_DrawBoard(boardx,boardy);
     Play_DrawRowIndicator(boardx-2, boardy+1);
     Play_DrawColIndicator(boardx+1, boardy-2);
 
+    Play_DrawInstruction (boardx+2+Board_Logical_Size*Board_Cell_Graphical_Size+3,
+                          boardy+Board_Logical_Size*Board_Cell_Graphical_Size/2);
+
+    Play_DrawTurnIndicator(boardx+2+Board_Logical_Size*Board_Cell_Graphical_Size+3,
+                           boardy+1, Current_Game_Mode & PLACE_STONE_MODE);
+
+    if (Current_Game_Mode&PLACE_STONE_MODE) {
+        Play_DrawLastMove(boardx+2+Board_Logical_Size*Board_Cell_Graphical_Size+3+DEFAULT_BOARD_CELL_GRAPHICAL_SIZE+
+                    MAX_NAME_LENGTH+24,
+                    boardy+1);
+    }
+    else {
+        Play_DrawLastMove(boardx+2+Board_Logical_Size*Board_Cell_Graphical_Size+3+DEFAULT_BOARD_CELL_GRAPHICAL_SIZE+
+                    MAX_NAME_LENGTH+16,
+                    boardy+1);
+    }
+
+    Play_DrawGameModeIndicator(boardx+2+Board_Logical_Size*Board_Cell_Graphical_Size+3+DEFAULT_BOARD_CELL_GRAPHICAL_SIZE+
+                    MAX_NAME_LENGTH+(Current_Game_Mode&PLACE_STONE_MODE ? 24 : 16),
+                    boardy + Board_Logical_Size*Board_Cell_Graphical_Size/2);
+
+    Play_UpdateTurnIndicator(boardx+2+Board_Logical_Size*Board_Cell_Graphical_Size+3,
+                           boardy+1,-1,Current_Turn);
+}
+void Play_GraphicsReady (int boardx, int boardy) {
+    ///Default coordinate.
+    Board_Current_Cursor_X = Board_Current_Cursor_Y = Board_Logical_Size / 2;
+    Play_UpdateCell(boardx, boardy, Board_Current_Cursor_X, Board_Current_Cursor_Y, 1);
+    Play_UpdateColIndicator(boardx+1, boardy-2, -1, Board_Current_Cursor_X);
+    Play_UpdateRowIndicator(boardx-2, boardy+1, -1, Board_Current_Cursor_Y);
+}
+void Play_SimulateBoard (int x, int y, const MoveList& Move_List, char b[] = Board) {
+    Play_DrawBoard(x,y);
+    for (AMove m : Move_List) {
+        if (!m.TurnLost) { //Stone
+            Play_UpdateCell(x,y,m.x,m.y,0);
+        }
+        else {
+            b[m.y*MAX_BOARD_LOGICAL_SIZE+m.x] = (m.Maker==1)?'1':'2';
+            Play_UpdateCell(x,y,m.x,m.y,0,b);
+        }
+    }
+}
+void Debug_Test () {
 //    { ///Test Row indicator
 //        Play_UpdateRowIndicator(boardx-2, boardy+1, -1, 5);
 //        fflush(stdin); fgetc(stdin);
@@ -542,11 +584,7 @@ void PvPScreen (bool IsANewGame) {
 //        Play_UpdateColIndicator(boardx+1, boardy-2, 5, 7);
 //        fflush(stdin); fgetc(stdin);
 //    }
-    Play_DrawInstruction (boardx+2+Board_Logical_Size*Board_Cell_Graphical_Size+3,
-                          boardy+Board_Logical_Size*Board_Cell_Graphical_Size/2);
 
-    Play_DrawTurnIndicator(boardx+2+Board_Logical_Size*Board_Cell_Graphical_Size+3,
-                           boardy+1, Current_Game_Mode & PLACE_STONE_MODE);
 //    { ///Test turn indicator
 //         Play_UpdateTurnIndicator(boardx+2+Board_Logical_Size*Board_Cell_Graphical_Size+3,
 //                                boardy+1, -1, 1);
@@ -573,39 +611,77 @@ void PvPScreen (bool IsANewGame) {
 //        Play_DrawTurnIndicator(boardx+2+Board_Logical_Size*Board_Cell_Graphical_Size+3,
 //                           boardy+1,1);
 //    }
-    if (Current_Game_Mode&PLACE_STONE_MODE)
-        Play_DrawLastMove(boardx+2+Board_Logical_Size*Board_Cell_Graphical_Size+3+DEFAULT_BOARD_CELL_GRAPHICAL_SIZE+
-                    MAX_NAME_LENGTH+24,
-                    boardy+1);
-    else
-        Play_DrawLastMove(boardx+2+Board_Logical_Size*Board_Cell_Graphical_Size+3+DEFAULT_BOARD_CELL_GRAPHICAL_SIZE+
-                    MAX_NAME_LENGTH+16,
-                    boardy+1);
-    Play_DrawGameModeIndicator(boardx+2+Board_Logical_Size*Board_Cell_Graphical_Size+3+DEFAULT_BOARD_CELL_GRAPHICAL_SIZE+
-                    MAX_NAME_LENGTH+(Current_Game_Mode&PLACE_STONE_MODE ? 24 : 16),
-                    boardy + Board_Logical_Size*Board_Cell_Graphical_Size/2);
 
 //    { ///Test illegal mode
 //        Play_DrawIllegalMoveIndicator(boardx+2+Board_Logical_Size*Board_Cell_Graphical_Size+3,
 //                          boardy+Board_Logical_Size*Board_Cell_Graphical_Size*5/6);
 //    }
+}
+void Play_Undo (int boardx, int boardy) {
+    /**
+    Change:
+    - Move_List
+    Redraw:
+    - Cell at last move
+    - Turn indicator
+    - Last move list.
+    **/
+    if (!Move_List.empty()) { //There is things to undo
+        AMove m = Move_List.back(); ///Last element
+        Move_List.pop_back();
+
+        Play_UpdateTurnIndicator(boardx+2+Board_Logical_Size*Board_Cell_Graphical_Size+3,
+                                boardy+1,Current_Turn,-1);
+
+        if (!m.TurnLost) {
+            if (m.Maker==1) {
+                Player_1_Stone ++;
+            }
+            else {
+                Player_2_Stone ++;
+            }
+        }
+        else {
+            Current_Turn = 3-Current_Turn; //Alt turn
+        }
+
+        board(m.x, m.y) = '.';
+
+        Play_UpdateCell(boardx, boardy, Board_Current_Cursor_X, Board_Current_Cursor_Y, 0);
+        Play_UpdateColIndicator(boardx+1, boardy-2, Board_Current_Cursor_X, m.x);
+        Play_UpdateRowIndicator(boardx-2, boardy+1, Board_Current_Cursor_Y, m.y);
+        Board_Current_Cursor_X = m.x;
+        Board_Current_Cursor_Y = m.y;
+        Play_UpdateCell(boardx, boardy, Board_Current_Cursor_X, Board_Current_Cursor_Y, 1);
+
+        Play_UpdateTurnIndicator(boardx+2+Board_Logical_Size*Board_Cell_Graphical_Size+3,
+                                                    boardy+1,-1,Current_Turn);
+        if (Current_Game_Mode&PLACE_STONE_MODE) {
+            Play_DrawLastMove(boardx+2+Board_Logical_Size*Board_Cell_Graphical_Size+3+DEFAULT_BOARD_CELL_GRAPHICAL_SIZE+
+                    MAX_NAME_LENGTH+24,
+                    boardy+1);
+        }
+        else {
+            Play_DrawLastMove(boardx+2+Board_Logical_Size*Board_Cell_Graphical_Size+3+DEFAULT_BOARD_CELL_GRAPHICAL_SIZE+
+                    MAX_NAME_LENGTH+16,
+                    boardy+1);
+        }
+    } //empty
+}
+void PlayScreen(bool IsANewGame) {
+    if (IsANewGame) {
+        Play_InitializeNewGame();
+    }
+    int boardx=2, boardy=2;
+
+    Play_ReloadGraphics(boardx, boardy);
+    Play_ClearLogicalBoard();
+    Play_SimulateBoard(boardx, boardy, Move_List);
+    Play_GraphicsReady(boardx, boardy);
 
     INPUT_RECORD InputRecord; DWORD numEventsRead;
     FlushConsoleInputBuffer(GetStdHandle(STD_INPUT_HANDLE));
     bool Main_Menu_Signal = 0;
-
-    Play_UpdateTurnIndicator(boardx+2+Board_Logical_Size*Board_Cell_Graphical_Size+3,
-                           boardy+1,-1,Current_Turn);
-
-    ///Ẩn con trỏ
-    CONSOLE_CURSOR_INFO csnfo = {100, FALSE};
-    SetConsoleCursorInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csnfo);
-
-    ///Tọa độ mặc định.
-    Board_Current_Cursor_X = Board_Current_Cursor_Y = Board_Logical_Size / 2;
-    Play_UpdateCell(boardx, boardy, Board_Current_Cursor_X, Board_Current_Cursor_Y, 1);
-    Play_UpdateColIndicator(boardx+1, boardy-2, -1, Board_Current_Cursor_X);
-    Play_UpdateRowIndicator(boardx-2, boardy+1, -1, Board_Current_Cursor_Y);
 
     while (!Exit_Signal && !Main_Menu_Signal) {
         ReadConsoleInput(GetStdHandle(STD_INPUT_HANDLE), &InputRecord, 1, &numEventsRead);
@@ -617,6 +693,13 @@ void PvPScreen (bool IsANewGame) {
                     case 0x4D : Main_Menu_Signal=1; break; //VK_M
                     case 0x44 : { //VK_D
                         DataScreen(1);
+                        Play_ReloadGraphics(boardx, boardy);
+                        Play_ClearLogicalBoard();
+                        Play_SimulateBoard(boardx, boardy, Move_List);
+                        Play_GraphicsReady(boardx, boardy);
+                    }; break;
+                    case 0x55 : { //VK_U
+                        Play_Undo (boardx, boardy);
                     }; break;
                     case VK_UP : {
                         if (Board_Current_Cursor_Y-1>=0) {
@@ -680,12 +763,25 @@ void PvPScreen (bool IsANewGame) {
                                     break;
                                 }
                             }
+                            Move_List. push_back(Move);
                             board(Board_Current_Cursor_X, Board_Current_Cursor_Y) = (Current_Turn==1)?'1':'2';
                             Play_UpdateCell(boardx, boardy, Board_Current_Cursor_X, Board_Current_Cursor_Y, 1);
                             Play_UpdateTurnIndicator(boardx+2+Board_Logical_Size*Board_Cell_Graphical_Size+3,
                                                     boardy+1,Current_Turn,3-Current_Turn);
                             Current_Turn = 3-Current_Turn;
-                        }
+
+                            //Draw last moves
+                            if (Current_Game_Mode&PLACE_STONE_MODE) {
+                                Play_DrawLastMove(boardx+2+Board_Logical_Size*Board_Cell_Graphical_Size+3+DEFAULT_BOARD_CELL_GRAPHICAL_SIZE+
+                                MAX_NAME_LENGTH+24,
+                                boardy+1);
+                            }
+                            else {
+                                Play_DrawLastMove(boardx+2+Board_Logical_Size*Board_Cell_Graphical_Size+3+DEFAULT_BOARD_CELL_GRAPHICAL_SIZE+
+                                MAX_NAME_LENGTH+16,
+                                boardy+1);
+                            }
+                        } //isLegal
                         else {
                             Play_DrawIllegalMoveIndicator(boardx+2+Board_Logical_Size*Board_Cell_Graphical_Size+3,
                           boardy+Board_Logical_Size*Board_Cell_Graphical_Size*5/6);
@@ -696,6 +792,7 @@ void PvPScreen (bool IsANewGame) {
                             AMove Move = {0, Current_Turn, Board_Current_Cursor_X, Board_Current_Cursor_Y};
                             if (isLegalMove(Move) &&
                                 ((Current_Turn==1 && Player_1_Stone>0) || (Current_Turn==2 && Player_2_Stone>0))) {
+                                Move_List.push_back(Move);
                                 board(Board_Current_Cursor_X, Board_Current_Cursor_Y) = 'S';
                                 Play_UpdateCell(boardx, boardy,
                                                 Board_Current_Cursor_X, Board_Current_Cursor_Y, 1);
@@ -708,16 +805,26 @@ void PvPScreen (bool IsANewGame) {
 
                                 Play_DrawTurnIndicator(boardx+2+Board_Logical_Size*Board_Cell_Graphical_Size+3,
                                 boardy+1, Current_Game_Mode & PLACE_STONE_MODE);
-                            }
-                        }
+
+                                //Draw last moves
+                                if (Current_Game_Mode&PLACE_STONE_MODE) {
+                                    Play_DrawLastMove(boardx+2+Board_Logical_Size*Board_Cell_Graphical_Size+3+DEFAULT_BOARD_CELL_GRAPHICAL_SIZE+
+                                    MAX_NAME_LENGTH+24,
+                                    boardy+1);
+                                }
+                                else {
+                                    Play_DrawLastMove(boardx+2+Board_Logical_Size*Board_Cell_Graphical_Size+3+DEFAULT_BOARD_CELL_GRAPHICAL_SIZE+
+                                    MAX_NAME_LENGTH+16,
+                                    boardy+1);
+                                }
+                            } //if2
+                        } //if1
                     }
                 }//switch
             } //case KEY_EVENT
         } //switch
         FlushConsoleInputBuffer(GetStdHandle(STD_INPUT_HANDLE));
     }
-}
-void PvCScreen() {
 }
 void Stat_Load () {
     FILE *fStat = fopen(Stat_File_Path,"r");
@@ -743,7 +850,8 @@ bool Data_ReadFromFile (const char fileName[], GameData& data) {
     if (fin.is_open()) {
         int num_moves; AMove tmp;
         data.Move_List.clear();
-        fin>>data.Board_Logical_Size>>data.Screen_Mode>>data.Current_Game_Mode>>data.Player_1_Stone>>data.Player_2_Stone>>num_moves;
+        fin>>data.Board_Logical_Size>>data.Screen_Mode>>data.Current_Game_Mode>>data.Player_1_Stone>>data.Player_2_Stone>>num_moves
+        >>data.Enable_Undo>>data.Current_Turn;
         for (int i=0; i<num_moves; ++i) {
             fin>>tmp.TurnLost>>tmp.Maker>>tmp.x>>tmp.y;
             data.Move_List.push_back(tmp);
@@ -758,7 +866,7 @@ void Data_WriteToFile (const char fileName[], const GameData& data) {
     fout.open(fileName);
     if (fout.is_open()) {
         fout<<data.Board_Logical_Size<<"\n"<<data.Screen_Mode<<"\n"<<data.Current_Game_Mode<<"\n"<<data.Player_1_Stone
-        <<"\n"<<data.Player_2_Stone<<"\n"<<(int)data.Move_List.size();
+        <<"\n"<<data.Player_2_Stone<<"\n"<<(int)data.Move_List.size()<<"\n"<<data.Enable_Undo<<"\n"<<data.Current_Turn<<"\n";
         for (AMove m : data.Move_List) {
             fout<<m.TurnLost<<" "<<m.Maker<<" "<<m.x<<" "<<m.y<<endl;
         }
@@ -772,7 +880,8 @@ void Data_InitializeSlots () {
 }
 void Data_FinalizeSlots () {
     for (int i=0; i<Num_Data_Slot; ++i) {
-        Data_WriteToFile(Slot_Data_File[i], Slot_Data[i]);
+        if (Slot_Non_Empty[i])
+            Data_WriteToFile(Slot_Data_File[i], Slot_Data[i]);
     }
 }
 void Data_DrawSlotInfo (int x, int y, int slotId, bool NonEmpty, const GameData &data, bool selected) {
@@ -800,7 +909,8 @@ void Data_DrawSlotInfo (int x, int y, int slotId, bool NonEmpty, const GameData 
             cout<<"Caro";
         }
         else cout<<"Gomoku";
-        if (data.Current_Game_Mode & PLACE_STONE_MODE) cout<<" + Stone";
+        if (data.Current_Game_Mode & PLACE_STONE_MODE) cout<<"+Stone";
+        if (data.Enable_Undo) cout<<"+Undo";
 
         GotoXY(x+1,y+4);
         cout<<data.Move_List.size()<<" moves.";
@@ -811,31 +921,263 @@ void Data_DrawSlotInfo (int x, int y, int slotId, bool NonEmpty, const GameData 
     }
     cout.flush();
 }
-void Play_SimulateBoard (int x, int y, const MoveList Move_List, char b[] = Board) {
-    Play_DrawBoard(x,y);
-    for (AMove m : Move_List) {
-        if (!m.TurnLost) { //Stone
-            Play_UpdateCell(x,y,m.x,m.y,0);
-        }
-        else {
-            b[m.y*MAX_BOARD_LOGICAL_SIZE+m.x] = (m.Maker==1)?'1':'2';
-            Play_UpdateCell(x,y,m.x,m.y,0,b);
-        }
-    }
-}
 void Option_InitializeOption (const char OptionFile[]) {
     ifstream fin;
     fin.open(OptionFile);
     if (fin.is_open()) {
-        fin>>Board_Logical_Size>>Board_Cell_Graphical_Size;
+        fin>>Board_Logical_Size;
+        Board_Cell_Graphical_Size = DEFAULT_BOARD_CELL_GRAPHICAL_SIZE;
+        fin>>Current_Game_Mode>>P1_Move_First>>Enable_Undo;
+        fin.ignore(9999,'\n');
+        fin.get(Player_1_Name, MAX_NAME_LENGTH, '\n');
+        fin.ignore(9999,'\n');
+        fin.get(Player_2_Name, MAX_NAME_LENGTH, '\n');
     }
     else { //Load default setting.
         Board_Logical_Size = DEFAULT_BOARD_LOGICAL_SIZE;
         Board_Cell_Graphical_Size = DEFAULT_BOARD_CELL_GRAPHICAL_SIZE;
+        Current_Game_Mode = 0; ///Gomoku - stone + undo
+        P1_Move_First = 1;
+        Enable_Undo = 1;
+
+        strcpy(Player_1_Name, "Gryyna");
+        strcpy(Player_2_Name, "Yellos");
     }
     fin.close();
 }
-void DataScreen (bool EnableSave) {
+void Option_FinalizeOption (const char OptionFile[]) {
+    ofstream fout;
+    fout.open(OptionFile);
+    if (fout.is_open()) {
+        fout<<Board_Logical_Size<<"\n";
+        fout<<Current_Game_Mode<<"\n"<<P1_Move_First<<"\n"<<Enable_Undo<<"\n";
+        fout<<Player_1_Name<<endl;
+        fout<<Player_2_Name<<endl;
+        fout<<"--End of option file--"<<endl;
+    }
+    fout.close();
+}
+void Option_GetCurrentChoice (int choice[]) {
+    //choice[0]: Board size
+    switch (Board_Logical_Size) {
+        case 10: choice[0]=0; break;
+        case 15: choice[0]=1; break;
+        case 20: choice[0]=2; break;
+    }
+    //choice[1]: Gomoku or Caro?
+    choice[1] = ((Current_Game_Mode&CARO_MODE) ? 4 : 3);
+    //choice[2]: Player 1 goes first?
+    choice[2] = (P1_Move_First?5:6);
+    //choice[3]: Enable undo?
+    choice[3] = (Enable_Undo?5:6);
+    //choice[4]: Enable placing stone?
+    choice[4] = ((Current_Game_Mode&PLACE_STONE_MODE)?5:6);
+    //not relevant
+    choice[5]=choice[6]=choice[7]=choice[8]=choice[9]=-1;
+}
+void Option_DrawOptions (int x, int y,int TitleId,const char*OptionTitleDescription[],const char*OptionDescriptionList[],
+                         const int CurrentChoice, bool selecting) {
+    GotoXY(x,y);
+    if (selecting)
+        SetColor(Color::Black, Color::LightYellow);
+    else SetColor(Color::Black, Color::White);
+    cout<<OptionTitleDescription[TitleId]<<"   ";
+
+    if (CurrentChoice!=-1) {
+        if (selecting)
+            SetColor(Color::Green, Color::LightYellow);
+        else SetColor(Color::Black, Color::White);
+        cout<<OptionDescriptionList[CurrentChoice];
+    }
+}
+void Option_DrawInstruction (int x, int y) {
+    int curX=x, curY=y;SetColor(Color::Black, Color::White);
+    PutBorderedRectangle(curX, curY, curX+42, curY+7,'/','\\','\\','/','-','|','|','-');
+    curX+=2; curY++;
+    curY++;GotoXY(curX,curY);
+    cout<<"Up/Down/Left/Right:  change the options";
+    curY++; GotoXY(curX,curY);
+    cout<<"S:          (Quick) Save changes & Exit";
+    curY++; GotoXY(curX,curY);
+    cout<<"ESC:     (Quick) Discard changes & Exit";
+    curY++; GotoXY(curX,curY);
+    cout<<"Enter: (Does that) choose an option (?)";
+//    curY++; GotoXY(curX, curY);
+//    cout<<"???:                 Hmmm... Who knows?";
+}
+void Option_SetCurrentChoice (const int choice[]) {
+    //choice[0]: Board size
+    switch (choice[0]) {
+        case 0: Board_Logical_Size=10; break;
+        case 1: Board_Logical_Size=15; break;
+        case 2: Board_Logical_Size=20; break;
+    }
+    //choice[1]: Gomoku or Caro?
+    Current_Game_Mode = (choice[1]==3) ? 0 : CARO_MODE;
+    //choice[2]: Player 1 goes first?
+    P1_Move_First = (choice[2]==5);
+    //choice[3]: Enable undo?
+    Enable_Undo = (choice[3] == 5);
+    //choice[4]: Enable placing stone?
+    if (choice[4]==5) Current_Game_Mode |= PLACE_STONE_MODE;
+}
+
+void Option_ReloadGraphics (const int Num_Options, const int OptionTitle_X_coord[], const int OptionTitle_Y_coord[],
+                            const char *OptionTitleDescription[], const char *OptionDescriptionList[],
+                            const int OptionCurrentChoice[], const int Current_Title_Id) {
+    const int Screen_Width = 85;
+    const int Screen_Height = 20;
+    AdjustScreenSize(Screen_Width, Screen_Height);
+    SetColor(Color::Black, Color::White);
+
+    //hide the cursor
+    CONSOLE_CURSOR_INFO csnfo = {100,0};
+    SetConsoleCursorInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csnfo);
+
+    ClearScreen();
+
+    GotoXY(0,0);
+    cout<<"------OPTION SCREEN-------"<<endl;
+    cout<<"Warning: Options set here only affect new game, but not saved game."<<endl;
+    cout<<"It is encouraged to set the options again after playing a saved match.";
+
+    //Draw overall
+    for (int i=0; i<Num_Options; ++i) {
+        Option_DrawOptions(OptionTitle_X_coord[i], OptionTitle_Y_coord[i],
+                           i, OptionTitleDescription, OptionDescriptionList,
+                           OptionCurrentChoice[i],i==Current_Title_Id);
+    }
+    Option_DrawInstruction(40, 5);
+
+}
+void OptionScreen () {
+    const int Num_Options = 10;
+    const char * OptionTitleDescription[Num_Options] = {"Board Size           ",
+                                                        "Rule set             ",
+                                                        "Player 1 goes first  ",
+                                                        "Enable Undo          ",
+                                                        "Enable placing stones",
+                                                        "Save changes & Exit   ",
+                                                        "Discard changes & Exit",
+                                                        "View player 1 win animation",
+                                                        "View player 2 win animation",
+                                                        "View draw animation        "};
+    const char * OptionDescriptionList[7] = {"  10 x 10  ",
+                                             "  15 x 15  ",
+                                             "  20 x 20  ",
+                                             "  Gomoku   ",
+                                             "   Caro    ",
+                                             "   TRUE    ",
+                                             "   FALSE   "};
+    const int OptionDescriptionRange_L[Num_Options] = {0,3,5,5,5,-1,-1,-1,-1,-1};
+    const int OptionDescriptionRange_R[Num_Options] = {2,4,6,6,6,-1,-1,-1,-1,-1};
+
+    int OptionCurrentChoice[Num_Options];
+    Option_GetCurrentChoice(OptionCurrentChoice);
+
+    const int OptionTitle_Y_coord[Num_Options]={5,6,7,8,9,10,11,14,15,16};
+    const int OptionTitle_X_coord[Num_Options]={0,0,0,0,0, 0, 0, 0, 0, 0};
+    int Current_Title_Id = 0;
+    Option_ReloadGraphics (Num_Options, OptionTitle_X_coord, OptionTitle_Y_coord,
+                            OptionTitleDescription, OptionDescriptionList,
+                            OptionCurrentChoice,Current_Title_Id);
+
+    INPUT_RECORD InputRecord; bool Exit_Option_Screen_Signal = 0;
+    DWORD numEventsRead;
+    FlushConsoleInputBuffer(GetStdHandle(STD_INPUT_HANDLE));
+    while (!Exit_Option_Screen_Signal) {
+        ReadConsoleInput(GetStdHandle(STD_INPUT_HANDLE), &InputRecord, 1, &numEventsRead);
+        if (InputRecord.EventType==KEY_EVENT && InputRecord.Event.KeyEvent.bKeyDown==true) {
+            switch (InputRecord.Event.KeyEvent.wVirtualKeyCode) {
+                case VK_LEFT: {
+                    if (OptionCurrentChoice[Current_Title_Id]!=-1) {
+                        if (OptionCurrentChoice[Current_Title_Id]-1>=OptionDescriptionRange_L[Current_Title_Id]) {
+                            OptionCurrentChoice[Current_Title_Id]--;
+                        }
+                        else {
+                            OptionCurrentChoice[Current_Title_Id]=OptionDescriptionRange_R[Current_Title_Id];
+                        }
+                        Option_DrawOptions(OptionTitle_X_coord[Current_Title_Id], OptionTitle_Y_coord[Current_Title_Id],
+                                           Current_Title_Id,OptionTitleDescription,OptionDescriptionList,
+                                           OptionCurrentChoice[Current_Title_Id], 1);
+                    }
+                }; break;
+                case VK_RIGHT:{
+                    if (OptionCurrentChoice[Current_Title_Id]!=-1) {
+                        if (OptionCurrentChoice[Current_Title_Id]+1<=OptionDescriptionRange_R[Current_Title_Id]) {
+                            OptionCurrentChoice[Current_Title_Id]++;
+                        }
+                        else {
+                            OptionCurrentChoice[Current_Title_Id]=OptionDescriptionRange_L[Current_Title_Id];
+                        }
+                        Option_DrawOptions(OptionTitle_X_coord[Current_Title_Id], OptionTitle_Y_coord[Current_Title_Id],
+                                           Current_Title_Id,OptionTitleDescription,OptionDescriptionList,
+                                           OptionCurrentChoice[Current_Title_Id], 1);
+                    }
+                };break;
+                case VK_UP: {
+                    Option_DrawOptions(OptionTitle_X_coord[Current_Title_Id], OptionTitle_Y_coord[Current_Title_Id],
+                                           Current_Title_Id,OptionTitleDescription,OptionDescriptionList,
+                                           OptionCurrentChoice[Current_Title_Id], 0);
+                    Current_Title_Id = (Current_Title_Id-1>=0) ? Current_Title_Id-1 : Num_Options-1;
+                    Option_DrawOptions(OptionTitle_X_coord[Current_Title_Id], OptionTitle_Y_coord[Current_Title_Id],
+                                           Current_Title_Id,OptionTitleDescription,OptionDescriptionList,
+                                           OptionCurrentChoice[Current_Title_Id], 1);
+                };break;
+                case VK_DOWN: {
+                    Option_DrawOptions(OptionTitle_X_coord[Current_Title_Id], OptionTitle_Y_coord[Current_Title_Id],
+                                           Current_Title_Id,OptionTitleDescription,OptionDescriptionList,
+                                           OptionCurrentChoice[Current_Title_Id], 0);
+                    Current_Title_Id = (Current_Title_Id+1<Num_Options) ? Current_Title_Id+1 : 0;
+                    Option_DrawOptions(OptionTitle_X_coord[Current_Title_Id], OptionTitle_Y_coord[Current_Title_Id],
+                                           Current_Title_Id,OptionTitleDescription,OptionDescriptionList,
+                                           OptionCurrentChoice[Current_Title_Id], 1);
+
+                };break;
+                case 0x53: {//VK_S
+                    Option_SetCurrentChoice(OptionCurrentChoice);
+                    Exit_Option_Screen_Signal = 1;
+                };break;
+                case VK_ESCAPE: {
+                    Exit_Option_Screen_Signal = 1;
+                };break;
+                case VK_RETURN: {
+                    switch (Current_Title_Id) {
+                        case 5: { //"Save changes & Exit   ",5
+                            Option_SetCurrentChoice(OptionCurrentChoice);
+                            Exit_Option_Screen_Signal = 1;
+                        }; break;
+                        case 6: { //"Discard changes & Exit",6
+                            Exit_Option_Screen_Signal = 1;
+                        }; break;
+                        case 7: {//"View player 1 win animation",7
+                            Play_WinningAnimation(1);
+
+                            Option_ReloadGraphics (Num_Options, OptionTitle_X_coord, OptionTitle_Y_coord,
+                                OptionTitleDescription, OptionDescriptionList,
+                                OptionCurrentChoice,Current_Title_Id);
+                        }; break;
+                        case 8: {//"View player 2 win animation",8
+                            Play_WinningAnimation(2);
+
+                            Option_ReloadGraphics (Num_Options, OptionTitle_X_coord, OptionTitle_Y_coord,
+                                    OptionTitleDescription, OptionDescriptionList,
+                                    OptionCurrentChoice,Current_Title_Id);
+                        }; break;
+                        case 9: {//"View draw animation        "};9
+                            Play_DrawAnimation();
+
+                            Option_ReloadGraphics (Num_Options, OptionTitle_X_coord, OptionTitle_Y_coord,
+                                    OptionTitleDescription, OptionDescriptionList,
+                                    OptionCurrentChoice,Current_Title_Id);
+                        }; break;
+                    }
+                };break;
+            } //switch
+        }//if
+    }
+}
+bool DataScreen (bool EnableSave) {
 //    { ///Test DrawSlotInfo
 //        Data_DrawSlotInfo(1,1,1,0,Slot_Data[1],1);
 //        Slot_Data[2].Board_Logical_Size=15;
@@ -888,16 +1230,15 @@ void DataScreen (bool EnableSave) {
 
     INPUT_RECORD InputRecord; DWORD numEventsRead;
     FlushConsoleInputBuffer(GetStdHandle(STD_INPUT_HANDLE));
-    bool Back_to_Previous_Screen_Signal = 0;
 
-    while (0 == Back_to_Previous_Screen_Signal) {
+    while (1) {
         ReadConsoleInput(GetStdHandle(STD_INPUT_HANDLE), &InputRecord, 1, &numEventsRead);
         switch (InputRecord.EventType) {
             case (KEY_EVENT): {
                 if (InputRecord.Event.KeyEvent.bKeyDown == TRUE) {
                     switch (InputRecord.Event.KeyEvent.wVirtualKeyCode) {
                         case VK_ESCAPE: {
-                            Back_to_Previous_Screen_Signal = 1;
+                            return 0;
                         }; break;
                         case 0x4C: { //VK_L
                             if (Slot_Non_Empty[Current_Selecting_Slot]) {
@@ -907,21 +1248,14 @@ void DataScreen (bool EnableSave) {
                                 Player_2_Stone = Slot_Data[Current_Selecting_Slot].Player_2_Stone;
                                 Screen_Mode = Slot_Data[Current_Selecting_Slot].Screen_Mode;
                                 Move_List = Slot_Data[Current_Selecting_Slot].Move_List;
+                                Enable_Undo = Slot_Data[Current_Selecting_Slot].Enable_Undo;
+                                Current_Turn = Slot_Data[Current_Selecting_Slot].Current_Turn;
 
                                 ///Load complete!
                                 GotoXY(slotX[Current_Selecting_Slot]+1,slotY[Current_Selecting_Slot]+2);
                                 SetColor(Color::Black, Color::LightGreen);
                                 cout<<"LOAD COMPLETE!";
-                                GotoXY(slotX[Current_Selecting_Slot]+1,slotY[Current_Selecting_Slot]+3);
-                                cout<<"ESC TO BACK.";
-                                Sleep(750);
-
-                                Data_DrawSlotInfo(slotX[Current_Selecting_Slot],
-                                              slotY[Current_Selecting_Slot],
-                                              Current_Selecting_Slot+1,
-                                              Slot_Non_Empty[Current_Selecting_Slot],
-                                              Slot_Data[Current_Selecting_Slot],
-                                              1);
+                                return 1;
                             }
                             else {
                                 ///Load failed!
@@ -947,6 +1281,8 @@ void DataScreen (bool EnableSave) {
                                 Slot_Data[Current_Selecting_Slot].Player_2_Stone = Player_2_Stone;
                                 Slot_Data[Current_Selecting_Slot].Screen_Mode = Screen_Mode;
                                 Slot_Data[Current_Selecting_Slot].Move_List = Move_List;
+                                Slot_Data[Current_Selecting_Slot].Enable_Undo = Enable_Undo;
+                                Slot_Data[Current_Selecting_Slot].Current_Turn = Current_Turn;
 
                                 ///Reload current slot
                                 Data_DrawSlotInfo(slotX[Current_Selecting_Slot],

@@ -20,5 +20,7 @@ struct GameData {
     int Player_1_Stone, Player_2_Stone;
     int Current_Game_Mode;
     MoveList Move_List;
+    bool Enable_Undo;
+    int Current_Turn;
 };
 #endif // _DATASTRUCT_H_

@@ -72,12 +72,12 @@ char Board_Move_Icon_2[DEFAULT_BOARD_CELL_GRAPHICAL_SIZE*DEFAULT_BOARD_CELL_GRAP
 char Board_Move_Icon_0[DEFAULT_BOARD_CELL_GRAPHICAL_SIZE*DEFAULT_BOARD_CELL_GRAPHICAL_SIZE] = {' ',' ',' ',' '};
 
 ///Lượt hiện tại, nếu là người chơi 1, thì bằng 1, ngược lại bằng 2.
-const int MAX_NAME_LENGTH = 10;
+const int MAX_NAME_LENGTH = 11;
 int Current_Turn;
 ///Tên người chơi 1
-char Player_1_Name [MAX_NAME_LENGTH] = {"Gryyna\0"};
+char Player_1_Name [MAX_NAME_LENGTH];
 ///Tên người chơi 2
-char Player_2_Name [MAX_NAME_LENGTH] = {"Yellos\0"};
+char Player_2_Name [MAX_NAME_LENGTH];
 
 ///Số nước đi cuối được viết lên màn hình
 int Num_Last_Move = 10;
@@ -120,3 +120,5 @@ const char * Option_File = "option.dat";
 
 const int Slot_Width = 20;
 const int Slot_Height = 6;
+
+bool Enable_Undo = 1;

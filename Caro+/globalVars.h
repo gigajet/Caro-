@@ -51,8 +51,8 @@ extern char Board_Move_Icon_0[];
 
 extern const int MAX_NAME_LENGTH;
 extern int Current_Turn;
-extern char Player_1_Name [];
-extern char Player_2_Name [];
+extern char Player_1_Name[];
+extern char Player_2_Name[];
 
 extern int Num_Last_Move;
 
@@ -84,6 +84,8 @@ extern const char * Option_File;
 
 extern const int Slot_Width;
 extern const int Slot_Height;
+
+extern bool Enable_Undo;
 #define board(w,h) Board[(h)*MAX_BOARD_LOGICAL_SIZE+(w)]
 
 #endif // _GLOBALVARS_H_

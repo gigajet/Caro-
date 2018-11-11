@@ -4,10 +4,9 @@
 void SplashScreen ();
 int MainMenuScreen (int optionCursor);
 void StatisticScreen ();
-void DataScreen (bool EnableSave);
+bool DataScreen (bool EnableSave);
 void OptionScreen ();
-void PvPScreen (bool IsANewGame);
-void PvCScreen ();
+void PlayScreen (bool IsANewGame);
 
 void Stat_Load ();
 void Stat_Save ();
@@ -16,4 +15,5 @@ void Data_InitializeSlots ();
 void Data_FinalizeSlots ();
 
 void Option_InitializeOption (const char OptionFile[]);
+void Option_FinalizeOption (const char OptionFile[]);
 #endif

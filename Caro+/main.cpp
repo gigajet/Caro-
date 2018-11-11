@@ -15,18 +15,40 @@ int main()
     while (Exit_Signal == false) {
         int choice = MainMenuScreen(0);
         switch (choice) {
-            case 0: PvPScreen(1); break;
-            case 1: PvCScreen(); break;
-            case 2: break;
-            case 3: break;
-            case 4: DataScreen(0); break;
+            case 0: { //PvP
+                Screen_Mode = 0;
+                PlayScreen(1);
+                break;
+            }
+            case 1: { //PvC Easy
+                Screen_Mode = 1;
+                PlayScreen(1);
+                break;
+            }
+            case 2: { //PvC Norm
+                Screen_Mode = 2;
+                PlayScreen(1);
+                break;
+            }
+            case 3: { //PvC Hard
+                Screen_Mode = 3;
+                PlayScreen(1);
+                break;
+            }
+            case 4: { //Data
+                if (DataScreen(0)) {
+                    PlayScreen(0);
+                }
+                break;
+            }
             case 5: StatisticScreen(); break;
             case 6: OptionScreen(); break;
             case 7: Exit_Signal=true; break;
         }
     }
 
-    Data_FinalizeSlots(); //Do we really need this?
+    Data_FinalizeSlots();
     Stat_Save();
+    Option_FinalizeOption(Option_File);
     return 0;
 }
