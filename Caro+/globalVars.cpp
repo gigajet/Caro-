@@ -122,3 +122,8 @@ const int Slot_Width = 20;
 const int Slot_Height = 6;
 
 bool Enable_Undo = 1;
+
+//Use to evaluate (PvC only)
+CoordList Child_List;
+//(w,h) at (h*MAX_BOARD_SIZE+w)
+bool Already_in_Child_List[MAX_BOARD_LOGICAL_SIZE*MAX_BOARD_LOGICAL_SIZE];

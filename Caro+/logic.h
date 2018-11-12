@@ -3,9 +3,10 @@
 
 #include "dataStruct.h"
 
-///Nước đi vào tọa độ (x,y) có hợp lệ hay không?
 bool isLegalMove (AMove Move);
-///Nước đi vào tọa độ (x,y) có phải nước đi thắng hay không?
 bool isWinningMove (AMove Move);
+
+void NextMove (int ScreenMode, bool maximizer, short &x, short &y);
+
 
 #endif // _LOGIC_H_

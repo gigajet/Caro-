@@ -88,4 +88,6 @@ extern const int Slot_Height;
 extern bool Enable_Undo;
 #define board(w,h) Board[(h)*MAX_BOARD_LOGICAL_SIZE+(w)]
 
+extern CoordList Child_List;
+extern bool Already_in_Child_List[];
 #endif // _GLOBALVARS_H_

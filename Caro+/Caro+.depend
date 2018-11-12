@@ -21,7 +21,7 @@
 
 1541215191 d:\minh\project\caro+\screenutils.h
 
-1541935195 d:\minh\project\caro+\globalvars.h
+1542037430 d:\minh\project\caro+\globalvars.h
 	"dataStruct.h"
 
 1541172619 source:d:\minh\project\caro+\splashscreen.cpp
@@ -34,7 +34,7 @@
 
 1541164606 d:\minh\project\caro+\splashscreen.h
 
-1541935070 source:d:\minh\project\caro+\globalvars.cpp
+1542037277 source:d:\minh\project\caro+\globalvars.cpp
 	"globalVars.h"
 	"basicdraw.h"
 
@@ -50,7 +50,7 @@
 
 1541935572 d:\minh\project\caro+\menuscreen.h
 
-1541935608 source:d:\minh\project\caro+\menuscreen.cpp
+1542035115 source:d:\minh\project\caro+\menuscreen.cpp
 	"MenuScreen.h"
 	"globalVars.h"
 	"csDes_sup.h"
@@ -69,13 +69,15 @@
 1541647378 source:d:\minh\project\caro+\datastruct.cpp
 	"dataStruct.h"
 
-1541911366 d:\minh\project\caro+\datastruct.h
+1542038568 d:\minh\project\caro+\datastruct.h
 	<vector>
+	<windows.h>
 
-1541833539 source:d:\minh\project\caro+\logic.cpp
+1542039790 source:d:\minh\project\caro+\logic.cpp
 	"logic.h"
 	"globalVars.h"
+	"dataStruct.h"
 
-1541691252 d:\minh\project\caro+\logic.h
+1542031565 d:\minh\project\caro+\logic.h
 	"dataStruct.h"
 

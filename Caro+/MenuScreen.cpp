@@ -357,6 +357,7 @@ void Play_DrawTurnIndicator (int x, int y, bool DrawStoneLeft=0) {
         }
     GotoXY(curX+DEFAULT_BOARD_CELL_GRAPHICAL_SIZE+1, curY+DEFAULT_BOARD_CELL_GRAPHICAL_SIZE/2);
     PutString(Player_2_Name);
+    if (Screen_Mode>0) PutString (" (Computer)");
     if (DrawStoneLeft) {
         GotoXY(curX+DEFAULT_BOARD_CELL_GRAPHICAL_SIZE+1, curY+DEFAULT_BOARD_CELL_GRAPHICAL_SIZE/2+1);
         printf("%d stone(s) left",Player_2_Stone);
@@ -511,8 +512,10 @@ void Play_InitializeNewGame () {
     if (Current_Game_Mode & PLACE_STONE_MODE) {
         Player_1_Stone = Player_2_Stone = Num_Initial_Stone;
     }
+    Board_Num_Cell_Placed=0;
 }
 void Play_ReloadGraphics (int boardx, int boardy) {
+    using namespace std;
     AdjustScreenSize(110, (Board_Logical_Size==20)?45:36);
     SetColor(Color::Black, Color::White); ClearScreen();
     Board_Cell_Color_1 = Color::Blue;
@@ -528,7 +531,7 @@ void Play_ReloadGraphics (int boardx, int boardy) {
     Play_DrawColIndicator(boardx+1, boardy-2);
 
     Play_DrawInstruction (boardx+2+Board_Logical_Size*Board_Cell_Graphical_Size+3,
-                          boardy+Board_Logical_Size*Board_Cell_Graphical_Size/2);
+                          max(boardy+Board_Logical_Size*Board_Cell_Graphical_Size/2, 20));
 
     Play_DrawTurnIndicator(boardx+2+Board_Logical_Size*Board_Cell_Graphical_Size+3,
                            boardy+1, Current_Game_Mode & PLACE_STONE_MODE);
@@ -561,6 +564,7 @@ void Play_GraphicsReady (int boardx, int boardy) {
 void Play_SimulateBoard (int x, int y, const MoveList& Move_List, char b[] = Board) {
     Play_DrawBoard(x,y);
     for (AMove m : Move_List) {
+        Board_Num_Cell_Placed++;
         if (!m.TurnLost) { //Stone
             Play_UpdateCell(x,y,m.x,m.y,0);
         }
@@ -675,7 +679,6 @@ void PlayScreen(bool IsANewGame) {
     int boardx=2, boardy=2;
 
     Play_ReloadGraphics(boardx, boardy);
-    Play_ClearLogicalBoard();
     Play_SimulateBoard(boardx, boardy, Move_List);
     Play_GraphicsReady(boardx, boardy);
 
@@ -742,6 +745,7 @@ void PlayScreen(bool IsANewGame) {
                         if (isLegalMove(Move)) {
                             ///Đã có người thắng hay chưa?
                             ///Thắng, animation, còn thua thì vẫn luân phiên.
+                            Board_Num_Cell_Placed ++;
                             if (isWinningMove(Move)) {
                                 Play_WinningAnimation (Current_Turn);
 
@@ -765,6 +769,7 @@ void PlayScreen(bool IsANewGame) {
                             }
                             Move_List. push_back(Move);
                             board(Board_Current_Cursor_X, Board_Current_Cursor_Y) = (Current_Turn==1)?'1':'2';
+
                             Play_UpdateCell(boardx, boardy, Board_Current_Cursor_X, Board_Current_Cursor_Y, 1);
                             Play_UpdateTurnIndicator(boardx+2+Board_Logical_Size*Board_Cell_Graphical_Size+3,
                                                     boardy+1,Current_Turn,3-Current_Turn);

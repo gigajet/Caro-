@@ -2,6 +2,7 @@
 #define _DATASTRUCT_H_
 
 #include <vector>
+#include <windows.h>
 
 typedef long long ll;
 
@@ -23,4 +24,9 @@ struct GameData {
     bool Enable_Undo;
     int Current_Turn;
 };
+struct Coord {
+    short x,y;
+};
+typedef std::vector<Coord> CoordList;
+
 #endif // _DATASTRUCT_H_
