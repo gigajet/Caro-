@@ -39,7 +39,6 @@
 		<Unit filename="basicdraw.h" />
 		<Unit filename="csDes_sup.cpp" />
 		<Unit filename="csDes_sup.h" />
-		<Unit filename="dataStruct.cpp" />
 		<Unit filename="dataStruct.h" />
 		<Unit filename="globalVars.cpp" />
 		<Unit filename="globalVars.h" />

@@ -90,6 +90,7 @@ extern const int Slot_Height;
 
 extern bool Enable_Undo;
 
+//equals 1 or 2, indicates that player is Computer, not a player.
 extern short Computer_Player;
 extern CoordList Child_List;
 extern bool Already_in_Child_List[];

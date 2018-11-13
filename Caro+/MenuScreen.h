@@ -6,7 +6,6 @@ int MainMenuScreen (int optionCursor);
 void StatisticScreen ();
 bool DataScreen (bool EnableSave);
 void OptionScreen ();
-void Play_ClearLogicalBoard ();
 void PlayScreen (bool IsANewGame);
 
 void Stat_Load ();

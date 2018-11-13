@@ -960,11 +960,11 @@ void NextMove_Hard (bool maximizer, short &x, short &y) {
         Expanded.clear();
     }//for
 }
-void NextMove (int ScreenMode, bool maximizer, short &x, short &y) {
+void NextMove (int ScreenMode, short &x, short &y) {
     if (NextMove_Premature(x, y)) return;
     switch (ScreenMode) {
-    case 1: NextMove_Easy(maximizer, x,y); break;
-    case 2: NextMove_Normal(maximizer, x,y); break;
-    case 3: NextMove_Hard(maximizer, x,y); break;
+    case 1: NextMove_Easy(0, x,y); break;
+    case 2: NextMove_Normal(0, x,y); break;
+    case 3: NextMove_Hard(0, x,y); break;
     }
 }

@@ -711,7 +711,7 @@ void PlayScreen(bool IsANewGame) {
     while (!Exit_Signal && !Main_Menu_Signal) {
         if (Current_Turn == Computer_Player) {
             short x, y;
-            NextMove(Screen_Mode, Computer_Player==1, x, y);
+            NextMove(Screen_Mode, x, y);
 
             AMove Move = {1, Current_Turn, x, y};
             if (isLegalMove(Move)) {
@@ -719,12 +719,11 @@ void PlayScreen(bool IsANewGame) {
                 ///Thắng, animation, còn thua thì vẫn luân phiên.
                 Board_Num_Cell_Placed ++;
                 if (isWinningMove(Move)) {
-                    #define DEBUG
-                    #ifdef DEBUG
+
                     GotoXY(0,0); SetColor(Color::Black, Color::White);
                     cout<<"Computer moves at "<<x<<" "<<y<<" and then wins";
                     Sleep(1000);
-                    #endif // DEBUG
+
                     Play_WinningAnimation (Current_Turn);
                     Number_of_PvC_Loses ++;
                     Main_Menu_Signal = 1;
