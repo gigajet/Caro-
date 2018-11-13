@@ -726,7 +726,7 @@ void PlayScreen(bool IsANewGame) {
                     Sleep(1000);
                     #endif // DEBUG
                     Play_WinningAnimation (Current_Turn);
-                    Number_of_PvC_Wins ++;
+                    Number_of_PvC_Loses ++;
                     Main_Menu_Signal = 1;
                     break;
                 }

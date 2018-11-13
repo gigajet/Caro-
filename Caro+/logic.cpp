@@ -219,7 +219,7 @@ long long Evaluation_Gomoku (bool maximizer) {
                     && x1<Board_Logical_Size && y1<Board_Logical_Size && board(x1,y1)=='.') pattern[firstDim][6]++;
 
                 //Does it open on any side?
-                if (y0-1>=0 && x0-1>=0 && board(x0,y0-1)=='.') pattern[firstDim][4] ++;
+                if (y0-1>=0 && x0-1>=0 && board(x0-1,y0-1)=='.') pattern[firstDim][4] ++;
                 if (y1<Board_Logical_Size && x1<Board_Logical_Size && board(x1,y1)=='.') pattern[firstDim][4]++;
             }; break;
             case 3:{
@@ -227,7 +227,7 @@ long long Evaluation_Gomoku (bool maximizer) {
                     && x1<Board_Logical_Size && y1<Board_Logical_Size && board(x1,y1)=='.') pattern[firstDim][3]++;
 
                 //Does it open on any side?
-                if (y0-1>=0 && x0-1>=0 && board(x0,y0-1)=='.') pattern[firstDim][4] ++;
+                if (y0-1>=0 && x0-1>=0 && board(x0-1,y0-1)=='.') pattern[firstDim][4] ++;
                 if (y1<Board_Logical_Size && x1<Board_Logical_Size && board(x1,y1)=='.') pattern[firstDim][2]++;
             }; break;
             case 2:{
@@ -235,7 +235,7 @@ long long Evaluation_Gomoku (bool maximizer) {
                     && x1<Board_Logical_Size && y1<Board_Logical_Size && board(x1,y1)=='.') pattern[firstDim][1]++;
 
                 //Does it open on any side?
-                if (y0-1>=0 && x0-1>=0 && board(x0,y0-1)=='.') pattern[firstDim][4] ++;
+                if (y0-1>=0 && x0-1>=0 && board(x0-1,y0-1)=='.') pattern[firstDim][4] ++;
                 if (y1<Board_Logical_Size && x1<Board_Logical_Size && board(x1,y1)=='.') pattern[firstDim][0]++;
             }; break;
             } //switch
@@ -387,7 +387,7 @@ long long Evaluation_Caro (bool maximizer) {
 
         { ///Main diagonal
             int x0=x,y0=y;
-            while (y0-1>=0 && x0-1>=0 && board(x0, y0)==sig) {x0--; y0--;}
+            while (y0-1>=0 && x0-1>=0 && board(x0-1, y0-1)==sig) {x0--; y0--;}
             int x1=x,y1=y;
             while (x1<Board_Logical_Size && y1<Board_Logical_Size && board(x1,y1)==sig) {x1++; y1++;}
 
@@ -398,7 +398,7 @@ long long Evaluation_Caro (bool maximizer) {
                     && x1<Board_Logical_Size && y1<Board_Logical_Size && board(x1,y1)=='.') pattern[firstDim][6]++;
 
                 //Does it open on any side?
-                if (y0-1>=0 && x0-1>=0 && board(x0,y0-1)=='.') pattern[firstDim][5] ++;
+                if (y0-1>=0 && x0-1>=0 && board(x0-1,y0-1)=='.') pattern[firstDim][5] ++;
                 if (y1<Board_Logical_Size && x1<Board_Logical_Size && board(x1,y1)=='.') pattern[firstDim][5]++;
             }; break;
             case 4:{
@@ -406,7 +406,7 @@ long long Evaluation_Caro (bool maximizer) {
                     && x1<Board_Logical_Size && y1<Board_Logical_Size && board(x1,y1)=='.') pattern[firstDim][4]++;
 
                 //Does it open on any side?
-                if (y0-1>=0 && x0-1>=0 && board(x0,y0-1)=='.') pattern[firstDim][3] ++;
+                if (y0-1>=0 && x0-1>=0 && board(x0-1,y0-1)=='.') pattern[firstDim][3] ++;
                 if (y1<Board_Logical_Size && x1<Board_Logical_Size && board(x1,y1)=='.') pattern[firstDim][3]++;
             }; break;
             case 3:{
@@ -414,7 +414,7 @@ long long Evaluation_Caro (bool maximizer) {
                     && x1<Board_Logical_Size && y1<Board_Logical_Size && board(x1,y1)=='.') pattern[firstDim][2]++;
 
                 //Does it open on any side?
-                if (y0-1>=0 && x0-1>=0 && board(x0,y0-1)=='.') pattern[firstDim][1] ++;
+                if (y0-1>=0 && x0-1>=0 && board(x0-1,y0-1)=='.') pattern[firstDim][1] ++;
                 if (y1<Board_Logical_Size && x1<Board_Logical_Size && board(x1,y1)=='.') pattern[firstDim][1]++;
             }; break;
             case 2:{
@@ -600,6 +600,236 @@ long long Minimax (short x, short y, int depth, long long alpha, long long beta,
     return ans;
 }
 
+bool NextMove_Premature (short &xans, short &yans) {
+    ///Computer = minimizer.
+    ///Find patterns
+    ///2=-xxxx-, 1=xxxx-, 0=-xxx-
+    //patterns from pattern1[i][j] to pattern2[i][j]
+    CoordList pattern1[3][3]; CoordList pattern2[3][3];
+
+    for (int x=0; x<Board_Logical_Size; ++x)
+    for (int y=0; y<Board_Logical_Size; ++y)
+    if (board(x,y)!='.' && board(x,y)!='S') {
+        char sig = board(x,y);
+        int firstDim = (board(x,y)=='1') ? 1 : 2;
+        { ///Horizontal
+            int x0=x;
+            while (x0-1>=0 && board(x0-1, y)==sig) x0--;
+            int x1=x;
+            while (x1<Board_Logical_Size && board(x1,y)==sig) x1++;
+
+            int patternsize = x1-x0;
+            switch (patternsize) {
+            case 4:{
+                if (x0-1>=0 && board(x0-1,y)=='.' && x1<Board_Logical_Size && board(x1,y)=='.') {
+                    pattern1[firstDim][2].push_back({x0-1,y});
+                    pattern2[firstDim][2].push_back({x1,y});
+                }
+
+                //Does it open on any side?
+                if (x0-1>=0 && board(x0-1,y)=='.') {
+                    pattern1[firstDim][1].push_back({x0-1,y});
+                    pattern2[firstDim][1].push_back({x1-1,y});
+                }
+                if (x1<Board_Logical_Size && board(x1,y)=='.') {
+                    pattern1[firstDim][1].push_back({x0,y});
+                    pattern2[firstDim][1].push_back({x1,y});
+                }
+            }; break;
+            case 3:{
+                if (x0-1>=0 && board(x0-1,y)=='.' && x1<Board_Logical_Size && board(x1,y)=='.'){
+                    pattern1[firstDim][0].push_back({x0-1,y});
+                    pattern2[firstDim][0].push_back({x1,y});
+                }
+            }
+            }
+        } //block
+
+        { ///Vertical
+            int y0=y;
+            while (y0-1>=0 && board(x, y0-1)==sig) y0--;
+            int y1=y;
+            while (y1<Board_Logical_Size && board(x,y1)==sig) y1++;
+
+            int patternsize = y1-y0;
+            switch (patternsize) {
+            case 4:{
+                if (y0-1>=0 && board(x,y0-1)=='.' && y1<Board_Logical_Size && board(x,y1)=='.') {
+                    pattern1[firstDim][2].push_back({x,y0-1});
+                    pattern2[firstDim][2].push_back({x,y1});
+                }
+
+                //Does it open on any side?
+                if (y0-1>=0 && board(x,y0-1)=='.') {
+                    pattern1[firstDim][1].push_back({x,y0-1});
+                    pattern2[firstDim][1].push_back({x,y1-1});
+                }
+                if (y1<Board_Logical_Size && board(x,y1)=='.') {
+                    pattern1[firstDim][1].push_back({x,y0});
+                    pattern2[firstDim][1].push_back({x,y1});
+                }
+
+            }; break;
+            case 3:{
+                if (y0-1>=0 && board(x,y0-1)=='.' && y1<Board_Logical_Size && board(x,y1)=='.') {
+                    pattern1[firstDim][0].push_back({x,y0-1});
+                    pattern2[firstDim][0].push_back({x,y1});
+                }
+            }
+            }
+        } //block
+
+        { ///Main diagonal
+            int x0=x,y0=y;
+            while (y0-1>=0 && x0-1>=0 && board(x0-1, y0-1)==sig) {x0--; y0--;}
+            int x1=x,y1=y;
+            while (x1<Board_Logical_Size && y1<Board_Logical_Size && board(x1,y1)==sig) {x1++; y1++;}
+
+            int patternsize = y1-y0;
+            switch (patternsize) {
+            case 4:{
+                if (y0-1>=0 && x0-1>=0 && board(x0-1,y0-1)=='.'
+                    && x1<Board_Logical_Size && y1<Board_Logical_Size && board(x1,y1)=='.') {
+                    pattern1[firstDim][2].push_back({x0-1,y0-1});
+                    pattern2[firstDim][2].push_back({x1,y1});
+                }
+
+                //Does it open on any side?
+                if (y0-1>=0 && x0-1>=0 && board(x0-1,y0-1)=='.') {
+                    pattern1[firstDim][1].push_back({x0-1,y0-1});
+                    pattern2[firstDim][1].push_back({x1-1,y1-1});
+                }
+                if (y1<Board_Logical_Size && x1<Board_Logical_Size && board(x1,y1)=='.') {
+                    pattern1[firstDim][1].push_back({x0,y0});
+                    pattern2[firstDim][1].push_back({x1,y1});
+                }
+
+            }; break;
+            case 3:{
+                if (y0-1>=0 && x0-1>=0 && board(x0-1,y0-1)=='.'
+                    && x1<Board_Logical_Size && y1<Board_Logical_Size && board(x1,y1)=='.'){
+                    pattern1[firstDim][0].push_back({x0-1,y0-1});
+                    pattern2[firstDim][0].push_back({x1,y1});
+                }
+            }
+            }
+        } //block
+
+        { ///Sub diagonal
+            int x0=x,y0=y;
+            while (y0-1>=0 && x0+1<Board_Logical_Size && board(x0+1, y0-1)==sig) {x0++; y0--;}
+            int x1=x,y1=y;
+            while (x1>=0 && y1<Board_Logical_Size && board(x1,y1)==sig) {x1--; y1++;}
+
+            int patternsize = y1-y0;
+            switch (patternsize) {
+            case 4:{
+                if (y0-1>=0 && x0+1<Board_Logical_Size && board(x0+1,y0-1)=='.'
+                    && x1>=0 && y1<Board_Logical_Size && board(x1,y1)=='.') {
+                    pattern1[firstDim][2].push_back({x0+1,y0-1});
+                    pattern2[firstDim][2].push_back({x1,y1});
+                }
+
+                //Does it open on any side?
+                if (y0-1>=0 && x0+1<Board_Logical_Size && board(x0+1,y0-1)=='.') {
+                    pattern1[firstDim][2].push_back({x0+1,y0-1});
+                    pattern2[firstDim][2].push_back({x1+1,y1-1});
+                }
+                if (y1<Board_Logical_Size && x1>=0 && board(x1,y1)=='.') {
+                    pattern1[firstDim][2].push_back({x0,y0});
+                    pattern2[firstDim][2].push_back({x1,y1});
+                }
+            }; break;
+            case 3:{
+                if (y0-1>=0 && x0+1<Board_Logical_Size && board(x0+1,y0-1)=='.'
+                    && x1>=0 && y1<Board_Logical_Size && board(x1,y1)=='.'){
+                    pattern1[firstDim][0].push_back({x0+1,y0-1});
+                    pattern2[firstDim][0].push_back({x1,y1});
+                }
+            }
+            }
+        } //block
+    } //for
+
+    //Our 4 : go go!
+    if (!pattern1[2][2].empty()) {
+        if (board(pattern1[2][2][0].x, pattern1[2][2][0].y)=='.') {
+            xans = pattern1[2][2][0].x;
+            yans = pattern1[2][2][0].y;
+            return 1;
+        }
+        else {
+            xans = pattern2[2][2][0].x;
+            yans = pattern2[2][2][0].y;
+            return 1;
+        }
+    }
+    if (!pattern1[2][1].empty()) {
+        if (board(pattern1[2][1][0].x, pattern1[2][1][0].y)=='.') {
+            xans = pattern1[2][1][0].x;
+            yans = pattern1[2][1][0].y;
+            return 1;
+        }
+        else {
+            xans = pattern2[2][1][0].x;
+            yans = pattern2[2][1][0].y;
+            return 1;
+        }
+    }
+
+    //Enemy 4: Block!
+    if (!pattern1[1][2].empty()) {
+        if (board(pattern1[1][2][0].x, pattern1[1][2][0].y)=='.') {
+            xans = pattern1[1][2][0].x;
+            yans = pattern1[1][2][0].y;
+            return 1;
+        }
+        else {
+            xans = pattern2[1][2][0].x;
+            yans = pattern2[1][2][0].y;
+            return 1;
+        }
+    }
+    if (!pattern1[1][1].empty()) {
+        if (board(pattern1[1][1][0].x, pattern1[1][1][0].y)=='.') {
+            xans = pattern1[1][1][0].x;
+            yans = pattern1[1][1][0].y;
+            return 1;
+        }
+        else {
+            xans = pattern2[1][1][0].x;
+            yans = pattern2[1][1][0].y;
+            return 1;
+        }
+    }
+
+    //Our 3: any is good?
+    if (!pattern1[2][0].empty()) {
+        xans = pattern1[2][0][0].x;
+        yans=pattern1[2][0][0].y;
+        return 1;
+    }
+
+    //Enemy 3 : Block!
+    if (!pattern1[1][0].empty()) {
+        int x0 = pattern1[1][0][0].x, y0 = pattern1[1][0][0].y;
+        int x1 = pattern2[1][0][0].x, y1 = pattern2[1][0][0].y;
+        board(x0,y0)='2'; board(x1,y1)='1'; long long e1 = Evaluation(1);
+        board(x0,y0)='1'; board(x1,y1)='2'; long long e2 = Evaluation(1);
+        board(x0,y0)=board(x1,y1)='.';
+        if (e1 < e2) {
+            xans = x0; yans=y0;
+            return 1;
+        }
+        else {
+            xans = x1; yans=y1;
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
 void NextMove_Easy (bool maximizer, short &x, short &y) {
     using namespace std;
     short expandRadius = 1;
@@ -645,7 +875,7 @@ void NextMove_Easy (bool maximizer, short &x, short &y) {
 void NextMove_Normal (bool maximizer, short &x, short &y) {
     using namespace std;
     short expandRadius = 1;
-    int depthToGo = 3;
+    int depthToGo = 2;
     long long inf=1e18;
 
     long long optimalVal = (maximizer)? -inf-1 : inf+1;
@@ -731,10 +961,10 @@ void NextMove_Hard (bool maximizer, short &x, short &y) {
     }//for
 }
 void NextMove (int ScreenMode, bool maximizer, short &x, short &y) {
+    if (NextMove_Premature(x, y)) return;
     switch (ScreenMode) {
     case 1: NextMove_Easy(maximizer, x,y); break;
     case 2: NextMove_Normal(maximizer, x,y); break;
     case 3: NextMove_Hard(maximizer, x,y); break;
     }
 }
-
