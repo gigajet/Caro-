@@ -22,7 +22,7 @@ void SplashScreen() {
     short bg[5000], fg[5000]; char as[5000];
     int width, height;
     ReadCsDesImage("splashScreen.dat",width,height,bg,fg,as);
-    PutCsDesImage(0,0,width,height,bg,fg,as);
+    PutCsDesImage(0,0,width,height-1,bg,fg,as);
 
     while (!GetAsyncKeyState(VK_RETURN)) ;
     return;
@@ -513,6 +513,10 @@ void Play_InitializeNewGame () {
         Player_1_Stone = Player_2_Stone = Num_Initial_Stone;
     }
     Board_Num_Cell_Placed=0;
+
+    for (int w=0; w<Board_Logical_Size; ++w)
+        for (int h=0; h<Board_Logical_Size; ++h)
+            Already_in_Child_List[h*MAX_BOARD_LOGICAL_SIZE+w] = 0;
 }
 void Play_ReloadGraphics (int boardx, int boardy) {
     using namespace std;
@@ -571,6 +575,12 @@ void Play_SimulateBoard (int x, int y, const MoveList& Move_List, char b[] = Boa
         else {
             b[m.y*MAX_BOARD_LOGICAL_SIZE+m.x] = (m.Maker==1)?'1':'2';
             Play_UpdateCell(x,y,m.x,m.y,0,b);
+        }
+        CoordList Expanded;
+        Expand(Board_Current_Cursor_X, Board_Current_Cursor_Y, Expanded, 1);
+        for (Coord cEx : Expanded) {
+            Already_in_Child_List [cEx.y*MAX_BOARD_LOGICAL_SIZE+cEx.x] = 1;
+            Child_List.push_back({cEx.x, cEx.y});
         }
     }
 }
@@ -649,7 +659,7 @@ void Play_Undo (int boardx, int boardy) {
             Current_Turn = 3-Current_Turn; //Alt turn
         }
 
-        board(m.x, m.y) = '.';
+        board(m.x, m.y) = '.'; Board_Num_Cell_Placed--;
 
         Play_UpdateCell(boardx, boardy, Board_Current_Cursor_X, Board_Current_Cursor_Y, 0);
         Play_UpdateColIndicator(boardx+1, boardy-2, Board_Current_Cursor_X, m.x);
@@ -672,6 +682,18 @@ void Play_Undo (int boardx, int boardy) {
         }
     } //empty
 }
+void Play_MoveBoardCursor (int boardx, int boardy, int logicx, int logicy,
+                           bool UpdateRowIndicator, bool UpdateColIndicator) {
+    Play_UpdateCell(boardx, boardy, Board_Current_Cursor_X, Board_Current_Cursor_Y, 0);
+    Play_UpdateCell(boardx, boardy, logicx, logicy, 1);
+    if (UpdateRowIndicator) {
+        Play_UpdateRowIndicator(boardx-2, boardy+1, Board_Current_Cursor_Y, logicy);
+    }
+    if (UpdateColIndicator) {
+        Play_UpdateColIndicator(boardx+1, boardy-2, Board_Current_Cursor_X, logicx);
+    }
+    Board_Current_Cursor_X = logicx; Board_Current_Cursor_Y = logicy;
+}
 void PlayScreen(bool IsANewGame) {
     if (IsANewGame) {
         Play_InitializeNewGame();
@@ -687,129 +709,159 @@ void PlayScreen(bool IsANewGame) {
     bool Main_Menu_Signal = 0;
 
     while (!Exit_Signal && !Main_Menu_Signal) {
-        ReadConsoleInput(GetStdHandle(STD_INPUT_HANDLE), &InputRecord, 1, &numEventsRead);
-        switch (InputRecord.EventType) {
-            case KEY_EVENT: {
-                if (InputRecord.Event.KeyEvent.bKeyDown == 0) break;
-                switch (InputRecord.Event.KeyEvent.wVirtualKeyCode) {
-                    case VK_ESCAPE : Exit_Signal=1; break;
-                    case 0x4D : Main_Menu_Signal=1; break; //VK_M
-                    case 0x44 : { //VK_D
-                        DataScreen(1);
-                        Play_ReloadGraphics(boardx, boardy);
-                        Play_ClearLogicalBoard();
-                        Play_SimulateBoard(boardx, boardy, Move_List);
-                        Play_GraphicsReady(boardx, boardy);
-                    }; break;
-                    case 0x55 : { //VK_U
-                        Play_Undo (boardx, boardy);
-                    }; break;
-                    case VK_UP : {
-                        if (Board_Current_Cursor_Y-1>=0) {
-                            Play_UpdateCell(boardx,boardy,Board_Current_Cursor_X,Board_Current_Cursor_Y,0);
-                            Play_UpdateRowIndicator(boardx-2, boardy+1, Board_Current_Cursor_Y, -1);
-                            Board_Current_Cursor_Y -= 1;
-                            Play_UpdateCell(boardx,boardy,Board_Current_Cursor_X,Board_Current_Cursor_Y,1);
-                            Play_UpdateRowIndicator(boardx-2, boardy+1, -1, Board_Current_Cursor_Y);
-                        }
-                    }; break;
-                    case VK_DOWN : {
-                        if (Board_Current_Cursor_Y+1<Board_Logical_Size) {
-                            Play_UpdateCell(boardx,boardy,Board_Current_Cursor_X,Board_Current_Cursor_Y,0);
-                            Play_UpdateRowIndicator(boardx-2, boardy+1, Board_Current_Cursor_Y, -1);
-                            Board_Current_Cursor_Y += 1;
-                            Play_UpdateCell(boardx,boardy,Board_Current_Cursor_X,Board_Current_Cursor_Y,1);
-                            Play_UpdateRowIndicator(boardx-2, boardy+1, -1, Board_Current_Cursor_Y);
-                        }
-                    }; break;
-                    case VK_LEFT : {
-                        if (Board_Current_Cursor_X-1>=0) {
-                            Play_UpdateCell(boardx,boardy,Board_Current_Cursor_X,Board_Current_Cursor_Y,0);
-                            Play_UpdateColIndicator(boardx+1, boardy-2, Board_Current_Cursor_X, -1);
-                            Board_Current_Cursor_X -= 1;
-                            Play_UpdateCell(boardx,boardy,Board_Current_Cursor_X,Board_Current_Cursor_Y,1);
-                            Play_UpdateColIndicator(boardx+1, boardy-2, -1, Board_Current_Cursor_X);
-                        }
-                    }; break;
-                    case VK_RIGHT : {
-                        if (Board_Current_Cursor_X+1<Board_Logical_Size) {
-                            Play_UpdateCell(boardx,boardy,Board_Current_Cursor_X,Board_Current_Cursor_Y,0);
-                            Play_UpdateColIndicator(boardx+1, boardy-2, Board_Current_Cursor_X, -1);
-                            Board_Current_Cursor_X += 1;
-                            Play_UpdateCell(boardx,boardy,Board_Current_Cursor_X,Board_Current_Cursor_Y,1);
-                            Play_UpdateColIndicator(boardx+1, boardy-2, -1, Board_Current_Cursor_X);
-                        }
-                    }; break;
-                    case VK_SPACE : {
-                        AMove Move = {1, Current_Turn, Board_Current_Cursor_X, Board_Current_Cursor_Y};
-                        if (isLegalMove(Move)) {
-                            ///Đã có người thắng hay chưa?
-                            ///Thắng, animation, còn thua thì vẫn luân phiên.
-                            Board_Num_Cell_Placed ++;
-                            if (isWinningMove(Move)) {
-                                Play_WinningAnimation (Current_Turn);
+        if (Current_Turn == Computer_Player) {
+            short x, y;
+            NextMove(Screen_Mode, Computer_Player==1, x, y);
 
-                                //Cập nhật số liệu thống kê
-                                if (Current_Turn==1) {
-                                    Number_of_PvP_P1_Wins ++;
-                                }
-                                else {
-                                    Number_of_PvP_P2_Wins ++;
-                                }
-                                Main_Menu_Signal = 1;
-                                break;
+            AMove Move = {1, Current_Turn, x, y};
+            if (isLegalMove(Move)) {
+                ///Đã có người thắng hay chưa?
+                ///Thắng, animation, còn thua thì vẫn luân phiên.
+                Board_Num_Cell_Placed ++;
+                if (isWinningMove(Move)) {
+                    #define DEBUG
+                    #ifdef DEBUG
+                    GotoXY(0,0); SetColor(Color::Black, Color::White);
+                    cout<<"Computer moves at "<<x<<" "<<y<<" and then wins";
+                    Sleep(1000);
+                    #endif // DEBUG
+                    Play_WinningAnimation (Current_Turn);
+                    Number_of_PvC_Wins ++;
+                    Main_Menu_Signal = 1;
+                    break;
+                }
+                else {
+                    if (Board_Num_Cell_Placed == Board_Logical_Size*Board_Logical_Size) {
+                        Play_DrawAnimation ();
+                        Number_of_PvC_Draws ++;
+                        Main_Menu_Signal = 1;
+                        break;
+                    }
+                }
+                Move_List. push_back(Move);
+                board(x, y) = (Current_Turn==1)?'1':'2';
+                Play_MoveBoardCursor(boardx, boardy, x, y,1,1);
+
+                CoordList Expanded;
+                Expand(Board_Current_Cursor_X, Board_Current_Cursor_Y, Expanded, 1);
+                for (Coord cEx : Expanded) {
+                    Already_in_Child_List [cEx.y*MAX_BOARD_LOGICAL_SIZE+cEx.x] = 1;
+                    Child_List.push_back({cEx.x, cEx.y});
+                }
+
+                Play_UpdateTurnIndicator(boardx+2+Board_Logical_Size*Board_Cell_Graphical_Size+3,
+                                        boardy+1,Current_Turn,3-Current_Turn);
+                Current_Turn = 3-Current_Turn;
+
+                //Draw last moves
+                if (Current_Game_Mode&PLACE_STONE_MODE) {
+                    Play_DrawLastMove(boardx+2+Board_Logical_Size*Board_Cell_Graphical_Size+3+DEFAULT_BOARD_CELL_GRAPHICAL_SIZE+
+                    MAX_NAME_LENGTH+24,
+                    boardy+1);
+                }
+                else {
+                    Play_DrawLastMove(boardx+2+Board_Logical_Size*Board_Cell_Graphical_Size+3+DEFAULT_BOARD_CELL_GRAPHICAL_SIZE+
+                    MAX_NAME_LENGTH+16,
+                    boardy+1);
+                }
+            } //isLegal
+        }
+        else {
+            ReadConsoleInput(GetStdHandle(STD_INPUT_HANDLE), &InputRecord, 1, &numEventsRead);
+            switch (InputRecord.EventType) {
+                case KEY_EVENT: {
+                    if (InputRecord.Event.KeyEvent.bKeyDown == 0) break;
+                    switch (InputRecord.Event.KeyEvent.wVirtualKeyCode) {
+                        case VK_ESCAPE : Exit_Signal=1; break;
+                        case 0x4D : Main_Menu_Signal=1; break; //VK_M
+                        case 0x44 : { //VK_D
+                            DataScreen(1);
+                            Play_ReloadGraphics(boardx, boardy);
+                            Play_ClearLogicalBoard();
+                            Play_SimulateBoard(boardx, boardy, Move_List);
+                            Play_GraphicsReady(boardx, boardy);
+                        }; break;
+                        case 0x55 : { //VK_U
+                            Play_Undo (boardx, boardy);
+                            if (Screen_Mode > 0)
+                                Play_Undo(boardx, boardy);
+                        }; break;
+                        case VK_UP : {
+                            if (Board_Current_Cursor_Y-1>=0) {
+                                Play_MoveBoardCursor(boardx, boardy, Board_Current_Cursor_X, Board_Current_Cursor_Y-1,1,1);
                             }
                             else {
-                                if (Board_Num_Cell_Placed == Board_Logical_Size*Board_Logical_Size) {
-                                    Play_DrawAnimation ();
-                                    Number_of_PvP_Draws ++;
+                                Play_MoveBoardCursor(boardx, boardy, Board_Current_Cursor_X, Board_Logical_Size-1,1,1);
+                            }
+                        }; break;
+                        case VK_DOWN : {
+                            if (Board_Current_Cursor_Y+1<Board_Logical_Size) {
+                                Play_MoveBoardCursor(boardx, boardy, Board_Current_Cursor_X, Board_Current_Cursor_Y+1,1,1);
+                            }
+                            else {
+                                Play_MoveBoardCursor(boardx, boardy, Board_Current_Cursor_X, 0,1,1);
+                            }
+                        }; break;
+                        case VK_LEFT : {
+                            if (Board_Current_Cursor_X-1>=0) {
+                                Play_MoveBoardCursor(boardx, boardy, Board_Current_Cursor_X-1, Board_Current_Cursor_Y,1,1);
+                            }
+                            else {
+                                Play_MoveBoardCursor(boardx, boardy, Board_Logical_Size-1, Board_Current_Cursor_Y,1,1);
+                            }
+                        }; break;
+                        case VK_RIGHT : {
+                            if (Board_Current_Cursor_X+1<Board_Logical_Size) {
+                                Play_MoveBoardCursor(boardx, boardy, Board_Current_Cursor_X+1, Board_Current_Cursor_Y,1,1);
+                            }
+                            else {
+                                Play_MoveBoardCursor(boardx, boardy, 0, Board_Current_Cursor_Y,1,1);
+                            }
+                        }; break;
+                        case VK_SPACE : {
+                            AMove Move = {1, Current_Turn, Board_Current_Cursor_X, Board_Current_Cursor_Y};
+                            if (isLegalMove(Move)) {
+                                ///Đã có người thắng hay chưa?
+                                ///Thắng, animation, còn thua thì vẫn luân phiên.
+                                Board_Num_Cell_Placed ++;
+                                if (isWinningMove(Move)) {
+                                    Play_WinningAnimation (Current_Turn);
+
+                                    //Statistic
+                                    if (Screen_Mode > 0) {
+                                        Number_of_PvC_Wins ++;
+                                    }
+                                    else if (Current_Turn==1) {
+                                        Number_of_PvP_P1_Wins ++;
+                                    }
+                                    else {
+                                        Number_of_PvP_P2_Wins ++;
+                                    }
                                     Main_Menu_Signal = 1;
                                     break;
                                 }
-                            }
-                            Move_List. push_back(Move);
-                            board(Board_Current_Cursor_X, Board_Current_Cursor_Y) = (Current_Turn==1)?'1':'2';
-
-                            Play_UpdateCell(boardx, boardy, Board_Current_Cursor_X, Board_Current_Cursor_Y, 1);
-                            Play_UpdateTurnIndicator(boardx+2+Board_Logical_Size*Board_Cell_Graphical_Size+3,
-                                                    boardy+1,Current_Turn,3-Current_Turn);
-                            Current_Turn = 3-Current_Turn;
-
-                            //Draw last moves
-                            if (Current_Game_Mode&PLACE_STONE_MODE) {
-                                Play_DrawLastMove(boardx+2+Board_Logical_Size*Board_Cell_Graphical_Size+3+DEFAULT_BOARD_CELL_GRAPHICAL_SIZE+
-                                MAX_NAME_LENGTH+24,
-                                boardy+1);
-                            }
-                            else {
-                                Play_DrawLastMove(boardx+2+Board_Logical_Size*Board_Cell_Graphical_Size+3+DEFAULT_BOARD_CELL_GRAPHICAL_SIZE+
-                                MAX_NAME_LENGTH+16,
-                                boardy+1);
-                            }
-                        } //isLegal
-                        else {
-                            Play_DrawIllegalMoveIndicator(boardx+2+Board_Logical_Size*Board_Cell_Graphical_Size+3,
-                          boardy+Board_Logical_Size*Board_Cell_Graphical_Size*5/6);
-                        }
-                    }; break;
-                    case VK_TAB : {
-                        if (Current_Game_Mode & PLACE_STONE_MODE) {
-                            AMove Move = {0, Current_Turn, Board_Current_Cursor_X, Board_Current_Cursor_Y};
-                            if (isLegalMove(Move) &&
-                                ((Current_Turn==1 && Player_1_Stone>0) || (Current_Turn==2 && Player_2_Stone>0))) {
-                                Move_List.push_back(Move);
-                                board(Board_Current_Cursor_X, Board_Current_Cursor_Y) = 'S';
-                                Play_UpdateCell(boardx, boardy,
-                                                Board_Current_Cursor_X, Board_Current_Cursor_Y, 1);
-                                if (Current_Turn==1) {
-                                    Player_1_Stone--;
-                                }
                                 else {
-                                    Player_2_Stone--;
+                                    if (Board_Num_Cell_Placed == Board_Logical_Size*Board_Logical_Size) {
+                                        Play_DrawAnimation ();
+                                        Number_of_PvP_Draws ++;
+                                        Main_Menu_Signal = 1;
+                                        break;
+                                    }
+                                }
+                                Move_List. push_back(Move);
+                                board(Board_Current_Cursor_X, Board_Current_Cursor_Y) = (Current_Turn==1)?'1':'2';
+
+                                CoordList Expanded;
+                                Expand(Board_Current_Cursor_X, Board_Current_Cursor_Y, Expanded, 1);
+                                for (Coord cEx : Expanded) {
+                                    Already_in_Child_List [cEx.y*MAX_BOARD_LOGICAL_SIZE+cEx.x] = 1;
+                                    Child_List.push_back({cEx.x, cEx.y});
                                 }
 
-                                Play_DrawTurnIndicator(boardx+2+Board_Logical_Size*Board_Cell_Graphical_Size+3,
-                                boardy+1, Current_Game_Mode & PLACE_STONE_MODE);
+                                Play_UpdateCell(boardx, boardy, Board_Current_Cursor_X, Board_Current_Cursor_Y, 1);
+                                Play_UpdateTurnIndicator(boardx+2+Board_Logical_Size*Board_Cell_Graphical_Size+3,
+                                                        boardy+1,Current_Turn,3-Current_Turn);
+                                Current_Turn = 3-Current_Turn;
 
                                 //Draw last moves
                                 if (Current_Game_Mode&PLACE_STONE_MODE) {
@@ -822,12 +874,56 @@ void PlayScreen(bool IsANewGame) {
                                     MAX_NAME_LENGTH+16,
                                     boardy+1);
                                 }
-                            } //if2
-                        } //if1
-                    }
-                }//switch
-            } //case KEY_EVENT
-        } //switch
+                            } //isLegal
+                            else {
+                                Play_DrawIllegalMoveIndicator(boardx+2+Board_Logical_Size*Board_Cell_Graphical_Size+3,
+                              boardy+Board_Logical_Size*Board_Cell_Graphical_Size*5/6);
+                            }
+                        }; break;
+                        case VK_TAB : {
+                            if (Current_Game_Mode & PLACE_STONE_MODE) {
+                                AMove Move = {0, Current_Turn, Board_Current_Cursor_X, Board_Current_Cursor_Y};
+                                if (isLegalMove(Move) &&
+                                    ((Current_Turn==1 && Player_1_Stone>0) || (Current_Turn==2 && Player_2_Stone>0))) {
+                                    Move_List.push_back(Move);
+                                    board(Board_Current_Cursor_X, Board_Current_Cursor_Y) = 'S';
+                                    Play_UpdateCell(boardx, boardy,
+                                                    Board_Current_Cursor_X, Board_Current_Cursor_Y, 1);
+                                    if (Current_Turn==1) {
+                                        Player_1_Stone--;
+                                    }
+                                    else {
+                                        Player_2_Stone--;
+                                    }
+
+                                    CoordList Expanded;
+                                    Expand(Board_Current_Cursor_X, Board_Current_Cursor_Y, Expanded, 1);
+                                    for (Coord cEx : Expanded) {
+                                        Already_in_Child_List [cEx.y*MAX_BOARD_LOGICAL_SIZE+cEx.x] = 1;
+                                        Child_List.push_back({cEx.x, cEx.y});
+                                    }
+
+                                    Play_DrawTurnIndicator(boardx+2+Board_Logical_Size*Board_Cell_Graphical_Size+3,
+                                    boardy+1, Current_Game_Mode & PLACE_STONE_MODE);
+
+                                    //Draw last moves
+                                    if (Current_Game_Mode&PLACE_STONE_MODE) {
+                                        Play_DrawLastMove(boardx+2+Board_Logical_Size*Board_Cell_Graphical_Size+3+DEFAULT_BOARD_CELL_GRAPHICAL_SIZE+
+                                        MAX_NAME_LENGTH+24,
+                                        boardy+1);
+                                    }
+                                    else {
+                                        Play_DrawLastMove(boardx+2+Board_Logical_Size*Board_Cell_Graphical_Size+3+DEFAULT_BOARD_CELL_GRAPHICAL_SIZE+
+                                        MAX_NAME_LENGTH+16,
+                                        boardy+1);
+                                    }
+                                } //if2
+                            } //if1
+                        }
+                    }//switch
+                } //case KEY_EVENT
+            } //switch
+        }
         FlushConsoleInputBuffer(GetStdHandle(STD_INPUT_HANDLE));
     }
 }

@@ -3,10 +3,10 @@
 
 #include <vector>
 #include <windows.h>
+#include <queue>
 
 typedef long long ll;
 
-///Một nước đi
 struct AMove {
     bool TurnLost;
     short Maker;

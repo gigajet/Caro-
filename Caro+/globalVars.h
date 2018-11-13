@@ -44,13 +44,16 @@ extern short Board_Move_Color_S;
 extern short Board_Border_Color;
 
 extern char Board[];
+//#define board(w,h) Board[(h)*MAX_BOARD_LOGICAL_SIZE+(w)]
+
+char &board(short w, short h);
 
 extern char Board_Move_Icon_1[];
 extern char Board_Move_Icon_2[];
 extern char Board_Move_Icon_0[];
 
 extern const int MAX_NAME_LENGTH;
-extern int Current_Turn;
+extern short Current_Turn;
 extern char Player_1_Name[];
 extern char Player_2_Name[];
 
@@ -63,8 +66,8 @@ extern int Player_2_Stone;
 extern int Illegal_Move_Delay;
 extern int Illegal_Move_Color;
 
-extern int Board_Current_Cursor_X;
-extern int Board_Current_Cursor_Y;
+extern short Board_Current_Cursor_X;
+extern short Board_Current_Cursor_Y;
 
 extern bool P1_Move_First;
 extern int Board_Num_Cell_Placed;
@@ -86,8 +89,9 @@ extern const int Slot_Width;
 extern const int Slot_Height;
 
 extern bool Enable_Undo;
-#define board(w,h) Board[(h)*MAX_BOARD_LOGICAL_SIZE+(w)]
 
+extern short Computer_Player;
 extern CoordList Child_List;
 extern bool Already_in_Child_List[];
+
 #endif // _GLOBALVARS_H_

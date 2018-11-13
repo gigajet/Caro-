@@ -9,7 +9,6 @@ struct CsDes_Pixel {
         int ForegroundColor;
         int BackgroundColor;
 };
-void zz() {}
 void ReadCsDesImage (const char * fileName, int & width, int & height, short background[], short foreground[], char ascii[]) {
     width = height = -1;
     ///Open File
@@ -40,7 +39,6 @@ void PutCsDesPixel (short x, short y, short background, short foreground, char a
 void PutCsDesImage (short x, short y, int width, int height, short background[], short foreground[], char ascii[]) {
     for (short w=0; w<width; ++w)
         for (short h=0; h<height; ++h) {
-            if (h*width+w == 777) zz();
             PutCsDesPixel(x+w,y+h,background[h*width+w],foreground[h*width+w],ascii[h*width+w]);
         }
 }
