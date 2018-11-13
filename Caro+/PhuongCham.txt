@@ -1,3 +1,0 @@
-Lần này không general coding nữa, không OOP gì hết. Tất cả là procedural-oriented.
-Những biến nào dùng chung cho mọi file (làm biến toàn cục), thì ném vào "globalVars.h"
-Viết 1 danh sách tham khảo.
