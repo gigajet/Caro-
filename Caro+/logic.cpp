@@ -803,13 +803,6 @@ bool NextMove_Premature (short &xans, short &yans) {
         }
     }
 
-    //Our 3: any is good?
-    if (!pattern1[2][0].empty()) {
-        xans = pattern1[2][0][0].x;
-        yans=pattern1[2][0][0].y;
-        return 1;
-    }
-
     //Enemy 3 : Block!
     if (!pattern1[1][0].empty()) {
         int x0 = pattern1[1][0][0].x, y0 = pattern1[1][0][0].y;
